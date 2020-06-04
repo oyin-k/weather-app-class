@@ -1,13 +1,32 @@
 import React from "react";
 import "./styles.css";
-// import xhr from "xhr";
+
 import axios from "axios";
 
-const API_KEY = "174d161dfbb8a393b67f068baa6fb28b";
+import Plot from "./Plot";
+
+const API_KEY = "29c4d04c20e9ad44e574736343206ca2";
 class App extends React.Component {
   state = {
     location: "",
-    data: {}
+    data: {},
+    dates: [],
+    temps: [],
+    slected: {
+      date: "",
+      temp: null
+    }
+  };
+
+  onPlotClick = data => {
+    if (data.points) {
+      this.setState({
+        selected: {
+          date: data.points[0].x,
+          temp: data.points[0].y
+        }
+      });
+    }
   };
 
   fetchData = e => {
@@ -34,9 +53,25 @@ class App extends React.Component {
       }
     })
       .then(res => {
-        const data = res.data;
-        this.setState({ data: data });
-        console.log(data);
+        let data = res.data;
+        let list = data.list;
+        let dates = [];
+        let temps = [];
+
+        for (let i = 0; i < list.length; i++) {
+          dates.push(list[i].dt_txt);
+          temps.push(list[i].main.temp);
+        }
+        // console.log(dates, temps);
+        this.setState({
+          data: data,
+          dates: dates,
+          temps: temps,
+          selected: {
+            date: "",
+            temp: null
+          }
+        });
       })
       .catch(error => {
         console.log(error);
@@ -50,7 +85,7 @@ class App extends React.Component {
   };
 
   render() {
-    let currentTemp = "Specify a location";
+    let currentTemp = "not loaded yet";
     if (this.state.data.list) {
       currentTemp = this.state.data.list[0].main.temp;
     }
@@ -68,10 +103,29 @@ class App extends React.Component {
             />
           </label>
         </form>
-        <p className="temp-wrapper">
-          <span className="temp">{currentTemp}</span>
-          <span className="temp-symbol">°C</span>
-        </p>
+        {this.state.data.list ? (
+          <div className="wrapper">
+            {/* Render the current temperature if no specific date is selected */}
+            <p className="temp-wrapper">
+              <span className="temp">
+                {this.state.selected.temp
+                  ? this.state.selected.temp
+                  : currentTemp}
+              </span>
+              <span className="temp-symbol">°C</span>
+              <span className="temp-date">
+                {this.state.selected.temp ? this.state.selected.date : ""}
+              </span>
+            </p>
+            <h2>Forcast</h2>
+            <Plot
+              xData={this.state.dates}
+              yData={this.state.temps}
+              onPlotClick={this.onPlotClick}
+              type="scatter"
+            />
+          </div>
+        ) : null}
       </div>
     );
   }
