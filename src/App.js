@@ -1,34 +1,23 @@
 import React from "react";
-import "./styles.css";
+import { connect } from "react-redux";
 
-import axios from "axios";
+import "./styles.css";
+// import axios from "axios";
 
 import Plot from "./Plot";
 
+import {
+  changeLocation,
+  setData,
+  setDates,
+  setTemps,
+  setSelectedDate,
+  setSelectedTemp,
+  fetchData
+} from "./actions";
+
 const API_KEY = "29c4d04c20e9ad44e574736343206ca2";
 class App extends React.Component {
-  state = {
-    location: "",
-    data: {},
-    dates: [],
-    temps: [],
-    slected: {
-      date: "",
-      temp: null
-    }
-  };
-
-  onPlotClick = data => {
-    if (data.points) {
-      this.setState({
-        selected: {
-          date: data.points[0].x,
-          temp: data.points[0].y
-        }
-      });
-    }
-  };
-
   fetchData = e => {
     e.preventDefault();
 
@@ -37,57 +26,32 @@ class App extends React.Component {
       return;
     }
 
-    let location = encodeURIComponent(this.state.location);
+    let location = encodeURIComponent(this.props.location);
     let urlPrefix =
       "https://cors-anywhere.herokuapp.com/http://api.openweathermap.org/data/2.5/forecast?q=";
     let urlSuffix = "&APPID=" + API_KEY + "&units=metric";
 
     let url = urlPrefix + location + urlSuffix;
 
-    axios({
-      method: "POST",
-      url: url,
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-        // "Access-Control-Allow-Origin": "*"
-      }
-    })
-      .then(res => {
-        let data = res.data;
-        let list = data.list;
-        let dates = [];
-        let temps = [];
+    this.props.dispatch(fetchData(url));
+  };
 
-        for (let i = 0; i < list.length; i++) {
-          dates.push(list[i].dt_txt);
-          temps.push(list[i].main.temp);
-        }
-        // console.log(dates, temps);
-        this.setState({
-          data: data,
-          dates: dates,
-          temps: temps,
-          selected: {
-            date: "",
-            temp: null
-          }
-        });
-      })
-      .catch(error => {
-        console.log(error);
-      });
+  onPlotClick = data => {
+    if (data.points) {
+      let number = data.points[0].pointNumber;
+      this.props.dispatch(setSelectedDate(this.props.dates[number]));
+      this.props.dispatch(setSelectedTemp(this.props.temps[number]));
+    }
   };
 
   changeLocation = e => {
-    this.setState({
-      location: e.target.value
-    });
+    this.props.dispatch(changeLocation(e.target.value));
   };
 
   render() {
     let currentTemp = "not loaded yet";
-    if (this.state.data.list) {
-      currentTemp = this.state.data.list[0].main.temp;
+    if (this.props.data.list) {
+      currentTemp = this.props.data.list[0].main.temp;
     }
     return (
       <div>
@@ -98,29 +62,26 @@ class App extends React.Component {
             <input
               placeholder={"City, Country"}
               type="text"
-              value={this.state.location}
+              value={this.props.location}
               onChange={this.changeLocation}
             />
           </label>
         </form>
-        {this.state.data.list ? (
-          <div className="wrapper">
+        {this.props.data.list ? (
+          <div>
             {/* Render the current temperature if no specific date is selected */}
-            <p className="temp-wrapper">
-              <span className="temp">
-                {this.state.selected.temp
-                  ? this.state.selected.temp
-                  : currentTemp}
-              </span>
-              <span className="temp-symbol">°C</span>
-              <span className="temp-date">
-                {this.state.selected.temp ? this.state.selected.date : ""}
-              </span>
-            </p>
-            <h2>Forcast</h2>
+            {this.props.selected.temp ? (
+              <p>
+                The temperature on {this.props.selected.date} will be{" "}
+                {this.props.selected.temp}°C
+              </p>
+            ) : (
+              <p>The current temperature is {currentTemp}°C!</p>
+            )}
+            <h2>Forecast</h2>
             <Plot
-              xData={this.state.dates}
-              yData={this.state.temps}
+              xData={this.props.dates}
+              yData={this.props.temps}
               onPlotClick={this.onPlotClick}
               type="scatter"
             />
@@ -131,4 +92,8 @@ class App extends React.Component {
   }
 }
 
-export default App;
+function mapStateToProps(state) {
+  return state;
+}
+
+export default connect(mapStateToProps)(App);
