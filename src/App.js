@@ -2,22 +2,18 @@ import React from "react";
 import { connect } from "react-redux";
 
 import "./styles.css";
-// import axios from "axios";
 
 import Plot from "./Plot";
 
 import {
   changeLocation,
-  setData,
-  setDates,
-  setTemps,
   setSelectedDate,
   setSelectedTemp,
   fetchData
 } from "./actions";
 
 const API_KEY = "29c4d04c20e9ad44e574736343206ca2";
-class App extends React.Component {
+export class App extends React.Component {
   fetchData = e => {
     e.preventDefault();
 
