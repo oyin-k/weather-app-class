@@ -3,13 +3,20 @@ import React, { Component } from "react";
 import Plotly from "plotly.js";
 
 class Plot extends Component {
+  shouldComponentUpdate(nextProps) {
+    const xDataChanged = !this.props.xData.equals(nextProps.xData);
+    const yDataChanged = !this.props.yData.equals(nextProps.yData);
+
+    return xDataChanged || yDataChanged;
+  }
+
   drawPlot = () => {
     Plotly.newPlot(
       "plot",
       [
         {
-          x: this.props.xData,
-          y: this.props.yData,
+          x: this.props.xData.toJS(),
+          y: this.props.yData.toJS(),
           type: this.props.type
         }
       ],
@@ -39,6 +46,7 @@ class Plot extends Component {
   }
 
   render() {
+    console.log("RENDER PLOT");
     return <div id="plot" />;
   }
 }
