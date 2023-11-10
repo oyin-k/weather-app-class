@@ -5,7 +5,7 @@
   "keywords": ["react", "starter"],
   "main": "src/index.js",
   "dependencies": {
-    "axios": "0.19.2",
+    "axios": "1.6.0",
     "immutable": "4.0.0-rc.12",
     "jest": "26.0.1",
     "jest-canvas-mock": "2.2.0",
